@@ -25,11 +25,9 @@ env:
 
 on:
   push:
-    branches: [ $default-branch ]
-  workflow_dispatch:
+    branches: 
+	- main
 
-permissions:
-  contents: read
 
 jobs:
   build:
