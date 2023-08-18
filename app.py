@@ -148,8 +148,8 @@ tab2 = dbc.Tab([
                 html.Li(' Goal: Build a data-driven Dash app that transforms raw World Bank data into meaningful insights, enabling users to identify trends and patterns crucial for sustainable development strategies.'),
                 html.Li([
                     'Github repo: ',
-                    html.A('https://github.com/edudzikorku/global-development-indicators',
-                          href = 'https://github.com/edudzikorku/global-development-indicators')
+                    html.A('https://github.com/edudzikorku/world-development-indicators',
+                          href = 'https://github.com/edudzikorku/world-development-indicators')
         ])
             ])
         ], label = 'Project Info')
