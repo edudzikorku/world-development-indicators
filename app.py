@@ -2,6 +2,7 @@
 # imports
 
 # data management
+import os
 import re
 import numpy as np
 import pandas as pd
@@ -284,8 +285,12 @@ indicator_list = poverty_indicator.columns[3:54]
 country_sub = poverty_indicator[poverty_indicator['is_country']]
 
 """#### Main Layout"""
-
+# instantiate app
 app = Dash(__name__, external_stylesheets = [dbc.themes.DARKLY])
+
+# set up server
+server = app.server
+
 # get list of indicators
 indicator_list = poverty_indicator.columns[3:54]
 # get list of countries
