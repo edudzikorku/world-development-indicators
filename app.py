@@ -22,13 +22,13 @@ from dash import Dash, html, dcc, Output, Input, callback
 import warnings
 warnings.filterwarnings("ignore")
 
-data = pd.read_csv('data/PovStatsData.csv')
+data = pd.read_csv('data_2020/PovStatsData.csv')
 
-country = pd.read_csv('data/PovStatsCountry.csv', na_values = '', keep_default_na = False)
+country = pd.read_csv('data_2020/PovStatsCountry.csv', na_values = '', keep_default_na = False)
 
-series = pd.read_csv("data/PovStatsSeries.csv")
+series = pd.read_csv("data_2020/PovStatsSeries.csv")
 
-poverty_indicator = pd.read_csv('data/poverty.csv', low_memory = False)
+poverty_indicator = pd.read_csv('data_2020/poverty_2020.csv', low_memory = False)
 
 # create list of regions in dataframe
 regions = ['East Asia & Pacific', 'Europe & Central Asia',
@@ -49,7 +49,7 @@ year_list = data_sub.columns[5:51].values.tolist()
 year_list = [int(year) for year in year_list]
 
 # get information on Gini coefficient
-gini = "GINI index (World Bank estimate)"
+gini = 'Gini index (World Bank estimate)'
 
 # separate regions from non-regions
 country['is_country'] = country['Region'].notna()
@@ -78,7 +78,7 @@ def country_flag(alpha_code):
 country['flag'] = [country_flag(code) for code in country['2-alpha code']]
 
 # drop irrelevant column
-data = data.drop(columns = ['Unnamed: 50'], axis = 1)
+data = data.drop(columns = ['Unnamed: 51'], axis = 1)
 # melt data dataframe. melting involves coverting columns into rows
 # convert all years into one column
 # set id variables. keep these as rows and duplicate them as needed to keep the mapping in place
@@ -130,12 +130,17 @@ tab1 = dbc.Tab([
                 html.Br(),
                 html.Li("Number of Economies: 70"),
                 html.Li("Temporal Coverage: 1974 - 2019"),
+                html.Li("Periodicity: Annual"),
                 html.Li("Update Frequency: Quarterly"),
-                html.Li("Last Updated: August 03, 2023"),
+                html.Li("Last Updated: July 02, 2021"),
                 html.Li([
                     "Source:", html.A(
                         'The World Bank',  href ='https://datacatalog.worldbank.org/dataset/poverty-and-equity-database'
                     )
+                ]),
+                html.Li([
+                    "DOI: ", html.A("https://doi.org/10.57966/4ya4-wm24",
+                                  href = "https://doi.org/10.57966/4ya4-wm24")
                 ])
             ], style = {
                 'fontFamily': 'sans-serif',
@@ -232,10 +237,11 @@ col4 = dbc.Col([
 
 # filter poverty indicator dataset
 poverty_gap_cols = poverty_indicator.filter(regex = 'Poverty gap').columns
- # create three variables, one for each poverty level
+ # create four variables, one for each poverty level
 perc_pov_19 = poverty_gap_cols[0]
-perc_pov_32 = poverty_gap_cols[1]
-perc_pov_55 = poverty_gap_cols[2]
+perc_pov_31 = poverty_gap_cols[1]
+perc_pov_32 = poverty_gap_cols[2]
+perc_pov_55 = poverty_gap_cols[3]
 
 # get colors for marks for the slider
 cividis0 = px.colors.sequential.Cividis[0]
@@ -244,35 +250,39 @@ indicator_marks = {
         'label': '$1.9', 'style': {'color': 'white', 'fontWeight': 'bold'}
     },
     1: {
-        'label': '$3.2', 'style': {'color': 'white', 'fontWeight': 'bold'}
+        'label': '$3.1', 'style': {'color': 'white', 'fontWeight': 'bold'}
     },
     2: {
+        'label': '$3.2', 'style': {'color': 'white', 'fontWeight': 'bold'}
+    },
+    3: {
         'label': '$5.5', 'style': {'color': 'white', 'fontWeight': 'bold'}
     },
 }
 
 # create dataframe for percentage poverty
-perc_pov_df = poverty_indicator[poverty_indicator['is_country']].dropna(subset = poverty_gap_cols)
+poverty_indicator = poverty_indicator.rename(columns = {'Year': 'year'})
+perc_pov_df = poverty_indicator[poverty_indicator['is_country'].notna()].dropna(subset = poverty_gap_cols)
 perc_pov_years = sorted(set(perc_pov_df['year']))
 year_marks = {year: {'label': str(year), 'style': {'color': 'white'}} for year in perc_pov_years[::5]}  # slicing the year list with a step of five
 
 poverty_indicator_slider = dbc.Col([
                    dbc.Label("Select poverty level: ", style = {'fontFamily': 'sans-serif', 'paddingRight': '10px'}),
-                   dcc.Slider(id = 'porverty_indicator_slider',
+                   dcc.Slider(id = 'poverty_indicator_slider',
                    min = 0,
-                   max = 2,
+                   max = 3,
                    step = 1,
                    value = 0,
                    included = False,
                    marks = indicator_marks
-              )], lg = 2)
+              )], lg = 4)
 year_slider =    dbc.Col([dbc.Label("Select a year: ",  style = {'fontFamily': 'sans-serif', 'marginRight': '10px'}),
                   dcc.Slider(id = 'percentage_poverty_year_slider',
                   min = perc_pov_years[0],
                   max = perc_pov_years[-1],
                   step = 1,
                   included = False,
-                  value = 2018,
+                  value = 2014,
                   marks = year_marks
                         )], lg = 5)
 
@@ -282,7 +292,7 @@ poverty_graph_col = dbc.Col([dcc.Graph(id = 'percentage_poverty__scatter_chart',
 indicator_list = poverty_indicator.columns[3:54]
 
 # get countries
-country_sub = poverty_indicator[poverty_indicator['is_country']]
+country_sub = poverty_indicator[poverty_indicator['is_country'].notna()]
 
 """#### Main Layout"""
 # instantiate app
@@ -294,7 +304,7 @@ server = app.server
 # get list of indicators
 indicator_list = poverty_indicator.columns[3:54]
 # get list of countries
-country_list = poverty_indicator[poverty_indicator['is_country']]["Country Name"].drop_duplicates().sort_values().tolist()
+country_list = poverty_indicator[poverty_indicator['is_country'].notna()]["Country Name"].drop_duplicates().sort_values().tolist()
 
 main_layout = html.Div([
     html.Div([
@@ -330,7 +340,7 @@ indicators_dashboard = html.Div([
              # dbc.Col(lg = 1, md = 1, sm = 1),
              dbc.Col([
                      dcc.Dropdown(id = 'indicator_dropdown',
-                                  value = 'GINI index (World Bank estimate)',
+                                  value = 'Gini index (World Bank estimate)',
                                   options = [{'label': indicator, 'value': indicator} for indicator in indicator_list],
                                   style = {'fontFamily': 'sans-serif','color': 'black'}),
                      dcc.Loading(
@@ -403,41 +413,43 @@ indicators_dashboard = html.Div([
     dbc.Row([col3, col4]),
     html.Br(),
     html.H3("Poverty Gap", style = {'fontFamily': 'sans-serif', 'textAlign': 'center'}),
-    html.H5("(at $1.9, $3.2, and 5.5 (% of total population))", style = {'fontFamily': 'sans-serif', 'textAlign': 'center'}),
+    html.H5("(at $1.9, $3.1, $3.2, and 5.5 (% of total population))", style = {'fontFamily': 'sans-serif', 'textAlign': 'center'}),
     html.Br(), html.Br(),
-    dbc.Row([
-        dbc.Col(lg=2),  # Spacer column
-        dbc.Col([  # Col for the sliders
-            dbc.Row([  # Nested row for the sliders
-                dbc.Col([
-                    dbc.Label("Select poverty level:", style={'fontFamily': 'sans-serif', 'paddingRight': '10px'}),
-                    dcc.Slider(
-                    id='poverty_indicator_slider',
-                    min=0,
-                    max=2,
-                    step=1,
-                    value=0,
-                    included=False,
-                    marks=indicator_marks
-                ),
-            ]),
-                dbc.Col([
-                    dbc.Label("Select a year:", style={'fontFamily': 'sans-serif', 'marginRight': '10px'}),
-                    dcc.Slider(
-                    id='percentage_poverty_year_slider',
-                    min=perc_pov_years[0],
-                    max=perc_pov_years[-1],
-                    step=1,
-                    included=False,
-                    value=2018,
-                    marks=year_marks
-                ),
-            ]),
-        ]),
-    ], lg=5),
-    dbc.Col(lg=5),
-    dcc.Graph(id = 'percentage_poverty__scatter_chart'),
+    dbc.Row([dbc.Col(lg = 2), poverty_indicator_slider, year_slider
+    #     dbc.Col(lg=2),  # Spacer column
+    #     dbc.Col([  # Col for the sliders
+    #         dbc.Row([  # Nested row for the sliders
+    #             dbc.Col([
+    #                 dbc.Label("Select poverty level:", style={'fontFamily': 'sans-serif', 'paddingRight': '10px'}),
+    #                 dcc.Slider(
+    #                 id = 'poverty_indicator_slider',
+    #                 min = 0,
+    #                 max = 3,
+    #                 step = 1,
+    #                 value = 0,
+    #                 included = False,
+    #                 marks = indicator_marks
+    #             ),
+    #         ]),
+    #             dbc.Col([
+    #                 dbc.Label("Select a year:", style={'fontFamily': 'sans-serif', 'marginRight': '10px'}),
+    #                 dcc.Slider(
+    #                 id = 'percentage_poverty_year_slider',
+    #                 min = perc_pov_years[0],
+    #                 max = perc_pov_years[-1],
+    #                 step = 1,
+    #                 included = False,
+    #                 value = 2014,
+    #                 marks = {num: str(num) for num in range(1981, 2014, 7)}
+    #             ),
+    #         ]),
+    #     ]),
+    # ], lg=5),
+    # dbc.Col(lg=5),
+    
 ]),
+    html.Br(),
+    dcc.Graph(id = 'percentage_poverty__scatter_chart'),
     html.Br(),
     dbc.Tabs([tab1, tab2]),
 ], style = {'fontFamily': 'sans-serif',
@@ -693,7 +705,7 @@ country_dashboard = html.Div([
                         placeholder = 'Choose an indicator',
                         value = 'Population, total',
                         options = [{'label': indicator, 'value': indicator} for indicator in indicator_list],
-                        style = {'color': 'blackk'}),
+                        style = {'color': 'black'}),
         ]),
         dbc.Col([
             dbc.Label("Select countries: "),
