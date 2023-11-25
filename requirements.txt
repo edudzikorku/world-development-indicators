@@ -1,9 +1,8 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: win-64
-dash==2.11.1
-dash-bootstrap-components==1.4.2
-numpy
+dash
+dash-bootstrap-components
 pandas
 plotly
 scikit-learn
