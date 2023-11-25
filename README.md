@@ -15,4 +15,4 @@ Welcome to the World Bank Development Indicators Dashboard project! This initiat
 3. **Global Collaboration:** The app fosters global collaboration by providing a platform for stakeholders to share insights, observations, and strategies based on the presented data. This encourages collective efforts towards sustainable development.
 
 ### Accessibility:<br />
-The app is accessible <a href="https://world-development-indicators.azurewebsites.net" target="_blank">here</a>
+The app is accessible <a href="https://world-dev-indicators.onrender.com/" target="_blank">here</a>
